@@ -100,7 +100,7 @@ sys_read(void)
   // For HW4  
   read_bytes = fileread(f, p, n);
   //cprintf("%d\n", read_bytes);
-  f->iostats.read_bytes = f->iostats.read_bytes + read_bytes; 
+  f->read_bytes = f->read_bytes + read_bytes; 
   return read_bytes;
 }
 
@@ -119,7 +119,7 @@ sys_write(void)
   // For HW4
   write_bytes = filewrite(f, p, n);
   //cprintf("%d\n", write_bytes);
-  f->iostats.write_bytes = f->iostats.write_bytes + write_bytes; 
+  f->write_bytes = f->write_bytes + write_bytes; 
   return write_bytes;
 }
 
@@ -135,8 +135,8 @@ sys_close(void)
   
   // For HW4: Get current process and zero out the iostats corresponding to the file descriptor
   curproc = myproc();
-  curproc->ofile[fd]->iostats.read_bytes = 0;
-  curproc->ofile[fd]->iostats.write_bytes = 0;
+  curproc->ofile[fd]->read_bytes = 0;
+  curproc->ofile[fd]->write_bytes = 0;
 
   curproc->ofile[fd] = 0;
   
@@ -374,8 +374,8 @@ sys_open(void)
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
 
   // For HW4
-  f->iostats.read_bytes = 0;
-  f->iostats.write_bytes = 0; 
+  f->read_bytes = 0;
+  f->write_bytes = 0; 
 
   // // For HW4: Get current process and zero out the iostats corresponding to the file descriptor
   // curproc = myproc();
@@ -467,8 +467,8 @@ sys_getiostats(void)
    return -1;
  }
 
- stats->read_bytes = f->iostats.read_bytes;
- stats->write_bytes = f->iostats.write_bytes;
+ stats->read_bytes = f->read_bytes;
+ stats->write_bytes = f->write_bytes;
  return 0;
 }
 
@@ -502,8 +502,8 @@ sys_exec(void)
   while (curproc->ofile[fd] !=0  && fd < NOFILE)
   {
     /* code */
-    curproc->ofile[fd]->iostats.read_bytes = 0;
-    curproc->ofile[fd]->iostats.write_bytes = 0;
+    curproc->ofile[fd]->read_bytes = 0;
+    curproc->ofile[fd]->write_bytes = 0;
     fd++;
   }
   return exec(path, argv);

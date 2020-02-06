@@ -6,7 +6,8 @@ struct file {
   struct pipe *pipe;
   struct inode *ip;
   uint off;
-  struct iostats iostats;
+  uint read_bytes;
+  uint write_bytes;
 };
 
 
