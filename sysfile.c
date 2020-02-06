@@ -92,7 +92,7 @@ sys_read(void)
   int n, fd;
   char *p;
   int read_bytes;
-  struct proc *curproc = myproc();
+  //struct proc *curproc = myproc();
 
   if((fd = argfd(0, 0, &f)) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
@@ -100,7 +100,7 @@ sys_read(void)
   // For HW4  
   read_bytes = fileread(f, p, n);
   //cprintf("%d\n", read_bytes);
-  curproc->ios[fd]->read_bytes = curproc->ios[fd]->read_bytes + read_bytes; 
+  f->iostats.read_bytes = f->iostats.read_bytes + read_bytes; 
   return read_bytes;
 }
 
@@ -111,7 +111,7 @@ sys_write(void)
   int n, fd;
   char *p;
   int write_bytes;
-  struct proc *curproc = myproc();
+  //struct proc *curproc = myproc();
 
   if((fd = argfd(0, 0, &f)) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
@@ -119,7 +119,7 @@ sys_write(void)
   // For HW4
   write_bytes = filewrite(f, p, n);
   //cprintf("%d\n", write_bytes);
-  curproc->ios[fd]->write_bytes = curproc->ios[fd]->write_bytes + write_bytes; 
+  f->iostats.write_bytes = f->iostats.write_bytes + write_bytes; 
   return write_bytes;
 }
 
@@ -132,13 +132,13 @@ sys_close(void)
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
-  myproc()->ofile[fd] = 0;
   
   // For HW4: Get current process and zero out the iostats corresponding to the file descriptor
   curproc = myproc();
-  curproc->ios[fd]->read_bytes = 0;
-  curproc->ios[fd]->write_bytes = 0;
-  curproc->ios[fd] = 0;
+  curproc->ofile[fd]->iostats.read_bytes = 0;
+  curproc->ofile[fd]->iostats.write_bytes = 0;
+
+  curproc->ofile[fd] = 0;
   
   fileclose(f);
   return 0;
@@ -330,7 +330,7 @@ sys_open(void)
   int fd, omode;
   struct file *f;
   struct inode *ip;
-  struct proc *curproc; // For HW4
+  //struct proc *curproc; // For HW4
   //struct iostats *ios; // For HW4
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
@@ -373,11 +373,15 @@ sys_open(void)
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
 
-  // For HW4: Get current process and zero out the iostats corresponding to the file descriptor
-  curproc = myproc();
-  //curproc->ios[fd] = ios;
-  curproc->ios[fd]->read_bytes = 0;
-  curproc->ios[fd]->write_bytes = 0;
+  // For HW4
+  f->iostats.read_bytes = 0;
+  f->iostats.write_bytes = 0; 
+
+  // // For HW4: Get current process and zero out the iostats corresponding to the file descriptor
+  // curproc = myproc();
+  // //curproc->ios[fd] = ios;
+  // curproc->ios[fd]->read_bytes = 0;
+  // curproc->ios[fd]->write_bytes = 0;
 
   return fd;
 }
@@ -450,7 +454,6 @@ sys_getiostats(void)
  struct file *f;
  int fd;
  struct iostats* stats;
- struct proc *curproc; // For HW4
 
  if (argstructptr(1, &stats, 8) < 0) { // struct is 8 bytes
    cprintf("Invalid iostats struct pointer\n.");
@@ -463,9 +466,9 @@ sys_getiostats(void)
    cprintf("No file opened on the file descriptor");
    return -1;
  }
- curproc = myproc();
- stats->read_bytes = curproc->ios[fd]->read_bytes;
- stats->write_bytes = curproc->ios[fd]->write_bytes;
+
+ stats->read_bytes = f->iostats.read_bytes;
+ stats->write_bytes = f->iostats.write_bytes;
  return 0;
 }
 
@@ -499,9 +502,8 @@ sys_exec(void)
   while (curproc->ofile[fd] !=0  && fd < NOFILE)
   {
     /* code */
-    curproc->ios[fd]->read_bytes = 0;
-    curproc->ios[fd]->write_bytes = 0;
-    curproc->ios[fd] = 0;
+    curproc->ofile[fd]->iostats.read_bytes = 0;
+    curproc->ofile[fd]->iostats.write_bytes = 0;
     fd++;
   }
   return exec(path, argv);

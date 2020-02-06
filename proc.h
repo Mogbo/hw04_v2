@@ -51,7 +51,7 @@ struct proc {
   char name[16];               // Process name (debugging)
 
   // For hw4
-  struct iostats *ios[NOFILE]; //iostats for each of the file descriptor
+  //struct iostats *ios[NOFILE]; //iostats for each of the file descriptor
 };
 
 // Process memory is laid out contiguously, low addresses first:
